@@ -30,7 +30,7 @@ console.log(userData.fullName);
         console.error("Error fetching todos:", error);
       });
   
-    const socket = io("https://project02-mc5o.onrender.com", {
+    const socket = io("https://final-se.onrender.com", {
       withCredentials: true,
     });
     setSocket(socket);
@@ -277,7 +277,7 @@ console.log(userData.fullName);
                 <div key={index} className="card">
                   {card.image && (
                     <img
-                      src={`http://localhost:5173/images/${card.image}`}
+                      src={`https://final-se.onrender.com/images/${card.image}`}
                       alt={`Image ${index}`}
                       height={150}
                       width={200}
