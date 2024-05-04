@@ -29,7 +29,7 @@ const App = () => {
         console.error("Error fetching todos:", error);
       });
 
-    const socket = io("http://localhost:5000", {
+    const socket = io("https://final-se.onrender.com", {
       withCredentials: true,
     });
     setSocket(socket);
