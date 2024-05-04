@@ -1,5 +1,4 @@
 
-
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import LogoutButton from "../../components/sidebar/LogoutButton";
@@ -18,28 +17,72 @@ const App = () => {
   const [chatRoomName, setChatRoomName] = useState("");
   const [image, setImage] = useState(null);
   const [price, setprice] = useState("");
+  const [loadingMessages, setLoadingMessages] = useState(true);
+  const [socketConnected, setSocketConnected] = useState(false);
 
   useEffect(() => {
-    console.log("hi");
     axios
-      .get("http://localhost:5000/resell")
+      .get("/api/resell")
       .then((response) => {
         setCards(response.data.todos || []);
       })
       .catch((error) => {
         console.error("Error fetching todos:", error);
       });
-
-    const socket = io("http://localhost:8000", {
+  
+    const socket = io("http://localhost:5000", {
       withCredentials: true,
     });
     setSocket(socket);
-
+  
+    // Track the state of the socket connection
+    
+  
     socket.on("connect", () => {
       console.log("WebSocket connected");
+      setSocketConnected(true);
     });
-
-    socket.on("receive-message", (data) => {
+  
+    // Cleanup function for the previous-messages event listener
+    return () => {
+      socket.off("resell-previous-messages");
+      socket.off("resell-receive-message");
+      socket.disconnect();
+    };
+  }, []);
+  
+  // Effect for handling previous-messages
+  useEffect(() => {
+    if (!socket) return; // Ensure socket is initialized
+  
+    const handlePreviousMessages = (previousMessages) => {
+      console.log("Received previous messages:", previousMessages);
+      console.log("Current selected card index:", selectedCardIndex);
+      console.log("Current messages:", messages);
+      // Update the state with the previous messages
+      setMessages((prevMessages) => ({
+        ...prevMessages,
+        [selectedCardIndex]: previousMessages,
+      }));
+      console.log("Updated messages:", messages);
+  
+      setLoadingMessages(false); // Set loading state to false after fetching messages
+    };
+  
+    // Add the event listener
+    socket.on("resell-previous-messages", handlePreviousMessages);
+  
+    // Cleanup function to remove the event listener when component unmounts or when the socket changes
+    return () => {
+      socket.off("resell-previous-messages", handlePreviousMessages);
+    };
+  }, [socket, selectedCardIndex, messages]); // Ensure dependencies are updated properly
+  
+  // Effect for handling receive-message
+  useEffect(() => {
+    if (!socket) return; // Ensure socket is initialized
+  
+    const handleReceiveMessage = (data) => {
       console.log("Received message:", data);
       if (data.room !== undefined) {
         setMessages((prevMessages) => ({
@@ -47,12 +90,17 @@ const App = () => {
           [data.room]: [...(prevMessages[data.room] || []), data],
         }));
       }
-    });
-
-    return () => {
-      socket.disconnect();
     };
-  }, []);
+  
+    // Add the event listener
+    socket.on("resell-receive-message", handleReceiveMessage);
+  
+    // Cleanup function to remove the event listener when component unmounts or when the socket changes
+    return () => {
+      socket.off("resell-receive-message", handleReceiveMessage);
+    };
+  }, [socket, messages]); // Ensure dependencies are updated properly
+  
 
   const handleInputChange = (event) => {
     setNewCardContent(event.target.value);
@@ -65,19 +113,16 @@ const App = () => {
     const formData = new FormData();
     formData.append("image", image);
     formData.append("title", newCardContent);
-    formData.append("name", userData.username);
+    formData.append("name", userData.fullName);
     formData.append("price", price);
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/server1/resell",
-        formData
-      );
+      const response = await axios.post("/api/server1/resell", formData);
       alert("Todo added");
       setCards((prevCards) => [...prevCards, response.data]);
       setNewCardContent("");
       setImage(null);
-      setprice("")
+      setprice("");
     } catch (error) {
       console.error("Error adding card:", error);
     }
@@ -88,7 +133,7 @@ const App = () => {
     setChatRoomName(cards[index].name);
     setShowSidebar(true);
     if (socket) {
-      socket.emit("join-room", index);
+      socket.emit("resell-join-room", index);
       if (!messages[index]) {
         setMessages((prevMessages) => ({
           ...prevMessages,
@@ -105,12 +150,31 @@ const App = () => {
   const handleSubmitMessage = (e) => {
     e.preventDefault();
     if (socket || selectedCardIndex !== null) {
-      socket.emit("message", {
+      socket.emit("resell-message", {
         text: messageInput,
         room: selectedCardIndex,
-        sender: userData.username,
+        sender: userData.fullName,
       });
       setMessageInput("");
+    }
+  };
+  const handleRemoveCard = async (index) => {
+    try {
+      const card = cards[index]; // Get the card object from the cards array based on the index
+      console.log(cards[index])
+      // Check if the username of the card matches the current username
+      if (card.name === userData.fullName) {
+        // If the usernames match, proceed with deletion
+        await axios.delete(`/api/server1/resell/${index}`);
+        setCards((prevCards) => prevCards.filter((_, i) => i !== index));
+        alert("Card is removed");
+      } else {
+        // If the usernames don't match, display an alert message
+        alert("Username mismatch. Deletion not allowed.");
+        // Optionally perform another action
+      }
+    } catch (error) {
+      console.error("Error removing card:", error);
     }
   };
 
@@ -139,120 +203,149 @@ const App = () => {
   return (
     <div>
       <div className="new-ui">
-        <div className="sidebar">
-          <div>
-            <LogoutButton />
-          </div>
-          <h2>Post Your Items</h2>
-          <div className="addlost">
+      <div className="topbar">
+
+<div className="top-barservers">
+  <a href="/">TUEXCHANGE</a>
+</div >
+
+<div className="top-barservers">
+<a href="/server1">LOST</a>
+<a href="/server2">TRAVEL</a>
+<a href="/server3">RESELL</a>
+<a href="/server4">BUSINESS</a>
+</div>
+
+</div>
+        <div className="main-content">
+          <div className="sidebar">
             <div>
-              <input
-                type="text"
-                className="papa"
-                placeholder="Enter details"
-                value={newCardContent}
-                onChange={handleInputChange}
-              />
-               <input
-                type="text"
-                className="papa"
-                placeholder="Enter price"
-                value={price}
-                onChange={handlePriceChange}
-              />
+              <LogoutButton />
             </div>
-            <div className="jai">
-              <form className="photo">
-                <label htmlFor="file-upload" className="custom-file-input">
-                  ADD PHOTO
-                </label>
+            <h2>Post Your Items</h2>
+            <div className="addlost">
+              <div>
                 <input
-                  id="file-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={onInputChange}
-                  className="hidden-input"
+                  type="text"
+                  className="papa"
+                  placeholder="Enter details"
+                  value={newCardContent}
+                  onChange={handleInputChange}
                 />
-              </form>
-              <button onClick={handleAddCard}>ADD ITEM</button>
-            </div>
-          </div>
-
-          <div className="filteritem">
-            <h2>Find Items</h2>
-            <input
-              className="filmeba"
-              type="text"
-              placeholder="Filter cards"
-              value={filterText}
-              onChange={(e) => setFilterText(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="stack-of-cards">
-          <div className="post">
-            <h2>SellME</h2>
-          </div>
-          <div className="card-container">
-            {filteredCards.map((card, index) => (
-              <div key={index} className="card">
-                {card.image && (
-                  <img
-                    src={`http://localhost:5000/images/${card.image}`}
-                    alt={`Image ${index}`}
-                    height={150}
-                    width={200}
+                <input
+                  type="text"
+                  className="papa"
+                  placeholder="Enter price"
+                  value={price}
+                  onChange={handlePriceChange}
+                />
+              </div>
+              <div className="jai">
+                <form className="photo">
+                  <label htmlFor="file-upload" className="custom-file-input">
+                     PHOTO
+                  </label>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={onInputChange}
+                    className="hidden-input"
                   />
-                )}
-                <p className="user-info">User: {card.name}</p>
-               
-                <p className="lost-item"> Item: {card.title}</p>
-                <p className="user-info">price: {card.price}</p>
-                <button
-                  className="chat-button"
-                  onClick={() => handleOpenChat(index)}
-                >
-                  Chat
-                </button>
+                  <button className="pho" onClick={handleAddCard}>ADD ITEM</button>
+                </form>
+                
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
+            </div>
 
-      {showSidebar && (
-        <div className="sidebar-container">
-          <div className="sidebar-contenttt">
-            <button onClick={handleCloseChat}>Close</button>
-            <h2>Chat with {chatRoomName}</h2>
-            <div className="formmm">
-              <form onSubmit={handleSubmitMessage}>
-                <input
-                  value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  placeholder="Message"
-                />
-                <button type="submit">Send</button>
-              </form>
+            <div className="filteritem">
+              <h2>Find Items</h2>
+              <input
+                className="filmeba"
+                type="text"
+                placeholder="Filter cards"
+                value={filterText}
+                onChange={(e) => setFilterText(e.target.value)}
+              />
             </div>
-            <div className="messages-column">
-              <h3>Messages</h3>
-              <div className="chat-messages">
-                {(messages[selectedCardIndex] || []).map((message, index) => (
-                  <div key={index}>
-                    <p>
-                      {message.sender}: {message.text}
-                    </p>
-                  </div>
-                ))}
-              </div>
+          </div>
+
+          <div className="stack-of-cards">
+            <div className="post"></div>
+            <div className="card-container">
+              {filteredCards.map((card, index) => (
+                <div key={index} className="card">
+                  {card.image && (
+                    <img
+                      src={`http://localhost:5173/images/${card.image}`}
+                      alt={`Image ${index}`}
+                      height={150}
+                      width={200}
+                    />
+                  )}
+                  <p className="user-info">USER: {card.name}</p>
+
+                  <p className="lost-item">ITEM: {card.title}</p>
+                  <p className="user-info">PRICE: {card.price}</p>
+                  <button
+                    className="chat-button"
+                    onClick={() => handleOpenChat(index)}
+                  >
+                    Chat
+                  </button>
+                  <button
+                    className="remove-button"
+                    onClick={() => handleRemoveCard(index)}
+                  >
+                   Remove
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      )}
+
+        {showSidebar && (
+            <div className="sidebar-container">
+              <div className="sidebar-contenttt">
+                <button onClick={handleCloseChat}>Close</button>
+                <h2>Chat with {chatRoomName}</h2>
+                <div className="formmm">
+                  <form  onSubmit={handleSubmitMessage}>
+                    <input
+                    className="ina"
+                      value={messageInput}
+                      onChange={(e) => setMessageInput(e.target.value)}
+                      placeholder="Message"
+                    />
+                    <button type="submit">Send</button>
+                  </form>
+                </div>
+                <div className="messages-column">
+                  <h3>Messages</h3>
+                  <div className="chat-messages">
+                  {/* Display loading indicator while messages are being fetched */}
+                  {loadingMessages ? (
+                    <p>Loading messages...</p>
+                  ) : (
+                    // Display messages if not loading
+                    (messages[selectedCardIndex] || []).map((message, index) => (
+                      <div key={index}>
+                        <p>
+                          {message.sender}: {message.text}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
 export default App;
+
