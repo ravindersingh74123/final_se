@@ -30,7 +30,7 @@ const App = () => {
         console.error("Error fetching todos:", error);
       });
   
-    const socket = io("http://localhost:5000", {
+    const socket = io("https://final-se.onrender.com", {
       withCredentials: true,
     });
     setSocket(socket);
@@ -277,7 +277,7 @@ const App = () => {
                 <div key={index} className="card">
                   {card.image && (
                     <img
-                      src={`http://localhost:5173/images/${card.image}`}
+                      src={`https://final-se.onrender.com/images/${card.image}`}
                       alt={`Image ${index}`}
                       height={150}
                       width={200}
