@@ -15,7 +15,7 @@
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
-  background-image: linear-gradient(to right, #e4c8c8, #3a1c71);
+  background-image: linear-gradient(to right, #e4c8c8, #ffffff);
   background-repeat: no-repeat;
 	background-size: cover;
 	background-position: center;
@@ -37,8 +37,7 @@
   justify-content: center;
   align-items: center;
   color: white;
-  /* justify-content: space-around;
-  align-items: center; */
+
   cursor: pointer;
   font-family: 'Roboto', sans-serif;
   transition: transform 0.3s ease;
@@ -48,42 +47,73 @@
 .server:hover {
   transform: translateY(-5px);
 }
-.photo {
+/* .photo {
   display: flex;
   flex-direction: column;
   align-items: center;
   
 
-}
+} */
 .jai{
   display: flex;
   flex-direction: row;
   gap: 2px;
   width: 280px;
-  transform: translate(-5px);
+  
+  height: 40px;
 }
 .jai2{
   display: flex;
   flex-direction: row;
   gap: 2px;
-  width: 280px;
+  width: 263px;
   transform: translate(-5px);
 }
 
 .papa{
-  width: 260px;
+  width: 240px;
   
 }
-.filmeba{
-  width: 260px;
+
+.photo{
+  display: flex;
+  flex-direction: row;
+  
+  
+    background-color: #000000;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 263px;
+    height: 40px;
+    gap: 50px;
+    transform: translate(3px);
+  
 }
+.pho{
+  
+    background-color: #000000;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 140px;
+    
+  
+}
+
 .custom-file-input {
-  /* Set the styles for the custom button */
-  background-color: #4CAF50; /* Green */
+ 
+  background-color: #000000; 
   color: white;
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
+  width: 100px;
+ 
 }
 
 /* Hide the default file input */
@@ -93,8 +123,9 @@
 
 /* Add hover effect */
 .custom-file-input:hover {
-  background-color: #45a049; /* Darker shade of green */
+  background-color: #202520; /* Darker shade of green */
 }
+
 
 
 /* Styles for the file input */
@@ -102,7 +133,7 @@
   display: block; /* Ensures the input takes up the full width available */
   margin-bottom: 10px; /* Adjust margin as needed */
   padding: 8px; /* Adjust padding as needed */
-  border: 1px solid #ccc; /* Border style */
+  border: 1px solid #7c2e2e; /* Border style */
   border-radius: 5px; /* Rounded corners */
   font-size: 16px; /* Adjust font size as needed */
   width: 100%; /* Ensures the input takes up the full width available */
@@ -119,6 +150,7 @@
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  width: 1000px;
 }
 
 .inbtn:hover {
@@ -194,6 +226,12 @@
   cursor: pointer;
   transition: background-color 0.3s ease;
   font-family: 'Roboto', sans-serif;
+  
+}
+.cross {
+  font-size: 24px; /* Adjust size as needed */
+  color: red; /* Adjust color as needed */
+  cursor: pointer; /* Optionally change cursor to pointer on hover */
 }
 
 .card button:hover {
@@ -268,7 +306,7 @@
   bottom: 0;
   right: 0;
   height: 40px;
-  width: 70px;
+  width: 90px;
   margin: 10px;
   padding: 8px 16px;
   background-color: #000000;
@@ -279,7 +317,22 @@
   transition: background-color 0.3s ease;
   font-family: 'Roboto', sans-serif;
 }
-
+.remove-button {
+  /* position: absolute; */
+  bottom: 0;
+  right: 0;
+  height: 40px;
+  width: 90px;
+  margin: 10px;
+  padding: 8px 16px;
+  background-color: #ab0000;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-family: 'Roboto', sans-serif;
+}
 .chat-button:hover {
   background-color: #000000;
 }
@@ -317,25 +370,61 @@
 
 .new-ui {
   display: flex;
+  flex-direction: column;
 
   height: 100%;
-  background-image: linear-gradient(to right, #e4c8c8, #3a1c71);
+  background-image: linear-gradient(to bottom, #a9a4a4, #ffffff);
   background-repeat: no-repeat;
 	background-size: cover;
 	background-position: center;
   display: cover;
   margin: 0;
   padding: 0;
+  gap: 5px;
 
 
 }
 
+.topbar{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  height: 80px;
+}
+.top-barservers {
+  display: flex;
+  justify-content: space-around; /* Adjust as needed */
+  align-items: center; /* Align items vertically */
+  gap: 10px;
+  padding: 10px; /* Adjust padding as needed */
+  
+}
+
+.top-barservers a {
+  text-decoration: none; /* Remove underline from links */
+  color: #000000; /* Link color */
+  font-size: 26px; /* Adjust font size as needed */
+  font-weight: bold;
+}
+
+.top-barservers a:hover {
+  color: #666; /* Link color on hover */
+}
+
+.main-content{
+  display: flex;
+  flex-direction: row;
+  padding: 10px;
+}
 .sidebar {
   
   width: 250px;
   /* background-color: #f5f5f5; */
-  background-color: #e2bfbf;
+  background-color: #ffffff;
   padding: 20px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
  
 }
 .addlost {
@@ -361,21 +450,10 @@
   color: #aaa;
 }
 
-.addlost button {
-  padding: 10px 20px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  width: 142px;
-  
- 
-}
+
 
 .addlost button:hover {
-  background-color: #45a049;
+  background-color: #1e241f;
  
 }
 .addlost2 {
@@ -403,7 +481,7 @@
 
 .addlost2 button {
   padding: 10px 20px;
-  background-color: #4CAF50;
+  background-color: #000000;
   color: white;
   border: none;
   border-radius: 5px;
@@ -415,7 +493,7 @@
 }
 
 .addlost button:hover {
-  background-color: #45a049;
+  background-color: #272c28;
  
 }
 
@@ -435,11 +513,14 @@
   border-radius: 5px;
   font-size: 16px;
   outline: none;
-  transform: translate(-23px);
+  transform: translate(-12px);
 }
 
 .filteritem input[type="text"]::placeholder {
   color: #aaa;
+}
+.filmeba{
+  width: 240px;
 }
 
 
@@ -462,7 +543,7 @@
   display: flex;
   justify-content: space-between;
   gap: 30px;
-  background-color: rgb(247, 225, 255);
+  background-color: rgb(255, 255, 255);
   padding: 10px;
 }
 
@@ -520,25 +601,32 @@ display: flex;
 } */
 
 /* Sidebar container */
-.sidebar-container {
+
+
+
+
+
+
+
+
+/* .sidebar-container {
   position: fixed;
   top: 0;
   right: 0;
   width: 300px;
   height: 100%;
-  background-color: #ca8bdb;
+  background-color: #ffffff;
   box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
   z-index: 1000;
   font-family: 'Roboto', sans-serif;
 }
 
-/* Sidebar content */
+
 .sidebar-content {
   padding: 20px;
 }
 
-/* Title */
-.sidebar-content h2 {
+.sidebar-contenttt h2 {
   margin-bottom: 20px;
   font-size: 24px;
   font-weight: bold;
@@ -546,19 +634,18 @@ display: flex;
   color: #333;
 }
 
-/* Form container */
+
 .formmm {
   margin-bottom: 20px;
 }
 
-/* Form */
-.sidebar-content form {
+
+.sidebar-contenttt form {
   display: flex;
   align-items: center;
 }
 
-/* Input field */
-.sidebar-content input[type="text"] {
+.sidebar-contenttt input[type="text"] {
   width: calc(100% - 90px);
   padding: 12px;
   margin-right: 10px;
@@ -569,10 +656,9 @@ display: flex;
   font-family: 'Roboto', sans-serif;
 }
 
-/* Submit button */
-.sidebar-content button[type="submit"] {
+.sidebar-contenttt button[type="submit"] {
   padding: 12px 24px;
-  background-color: #4CAF50;
+  background-color: #000000;
   color: white;
   border: none;
   border-radius: 20px;
@@ -582,17 +668,17 @@ display: flex;
   font-family: 'Roboto', sans-serif;
 }
 
-.sidebar-content button[type="submit"]:hover {
-  background-color: #45a049;
+.sidebar-contenttt button[type="submit"]:hover {
+  background-color: #262a26;
 }
 
-/* Messages and Rooms columns */
+
 .messages-column,
 .rooms-column {
   flex: 1;
 }
 
-/* Chat messages */
+
 .chat-messages {
   border: 1px solid #ccc;
   padding: 10px;
@@ -601,10 +687,10 @@ display: flex;
   gap: 10px;
   background-color: #fff;
   border-radius: 8px;
-  max-height: 200px; /* Adjust as needed */
+  max-height: 200px; 
 }
 
-/* Heading style */
+
 .messages-column h3 {
   margin-bottom: 20px;
   font-size: 20px;
@@ -613,7 +699,7 @@ display: flex;
   color: #333;
 }
 
-/* Message style */
+
 .chat-messages .message {
   margin-bottom: 10px;
   padding: 10px;
@@ -627,12 +713,12 @@ display: flex;
   font-family: 'Roboto', sans-serif;
 }
 
-/* Sender name style */
+
 .chat-messages .message .sender {
   font-weight: bold;
 }
 
-/* Close button style */
+
 .close-button {
   position: absolute;
   top: 20px;
@@ -650,7 +736,125 @@ display: flex;
 
 .close-button:hover {
   background-color: #ff4500;
+} */
+
+
+
+
+
+.sidebar-container {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 300px;
+  background-color: #f0f0f0;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
 }
+
+.sidebar-contenttt {
+  padding: 20px;
+}
+
+.sidebar-contenttt h2 {
+  margin-bottom: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  font-family: 'Pacifico', cursive;
+}
+
+.formmm {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: row;
+  
+
+}
+
+.ina {
+  width: calc(100% - 90px);
+  padding: 12px;
+  margin-right: 10px;
+  border: none;
+  border-radius: 20px;
+  background-color: #ffffff;
+  font-size: 16px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.formmm button[type="submit"] {
+  padding: 12px 24px;
+  width: 195px;
+  background-color: #000000;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 16px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.formmm button[type="submit"]:hover {
+  background-color: #000000;
+}
+
+.messages-column {
+  margin-top: auto;
+}
+
+.messages-column h3 {
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: bold;
+  font-family: 'Pacifico', cursive;
+}
+
+.chat-messages {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+  overflow-y: scroll;
+  gap: 10px;
+  background-color: #fff;
+  border-radius: 8px;
+  max-height: 200px; /* Adjust as needed */
+}
+
+.chat-messages .message {
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #e5f5e9;
+  border-radius: 8px;
+}
+
+.chat-messages .message p {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+}
+
+.chat-messages .message .sender {
+  font-weight: bold;
+}
+
+.sidebar-container button {
+  background-color: #000000;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 16px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.sidebar-container button:hover {
+  background-color: #000000;
+}
+
 
 
 
@@ -717,7 +921,7 @@ display: flex;
 }
 
 .login-input, .labelllll-input {
-  width: 100%;
+  width: 380px;
   padding: 10px;
   border: 1px solid #cccccc;
   border-radius: 5px;
