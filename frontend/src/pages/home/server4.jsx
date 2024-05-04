@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import LogoutButton from "../../components/sidebar/LogoutButton";
@@ -16,42 +15,90 @@ const App = () => {
   const [socket, setSocket] = useState(null);
   const [messageInput, setMessageInput] = useState("");
   const [chatRoomName, setChatRoomName] = useState("");
- 
+  const [loadingMessages, setLoadingMessages] = useState(true);
+  const [socketConnected, setSocketConnected] = useState(false);
 
   useEffect(() => {
-    console.log("hi");
     axios
-      .get("http://localhost:5000/business")
+      .get("/api/business")
       .then((response) => {
         setCards(response.data.todos || []);
       })
       .catch((error) => {
         console.error("Error fetching todos:", error);
       });
-
-    const socket = io("http://localhost:8000", {
+  
+    const socket = io("http://localhost:5000", {
       withCredentials: true,
     });
     setSocket(socket);
-
+  
+    // Track the state of the socket connection
+    
+  
     socket.on("connect", () => {
       console.log("WebSocket connected");
+      setSocketConnected(true);
     });
-
-    socket.on("receive-message", (data) => {
-      console.log("Received message:", data);
+  
+    // Cleanup function for the previous-messages event listener
+    return () => {
+      socket.off("business-previous-messages");
+      socket.off("business-receive-message");
+      socket.disconnect();
+    };
+  }, []);
+  
+  // Effect for handling previous-messages
+  useEffect(() => {
+    if (!socket) return; // Ensure socket is initialized
+  
+    const handlePreviousMessages = (previousMessages) => {
+      console.log("Received previous messages:", previousMessages);
+      console.log("Current selected card index:", selectedCardIndex);
+      console.log("Current messages:", messages);
+      // Update the state with the previous messages
+      setMessages((prevMessages) => ({
+        ...prevMessages,
+        [selectedCardIndex]: previousMessages,
+      }));
+      console.log("Updated messages:", messages);
+  
+      setLoadingMessages(false); // Set loading state to false after fetching messages
+    };
+  
+    // Add the event listener
+    socket.on("business-previous-messages", handlePreviousMessages);
+  
+    // Cleanup function to remove the event listener when component unmounts or when the socket changes
+    return () => {
+      socket.off("business-previous-messages", handlePreviousMessages);
+    };
+  }, [socket, selectedCardIndex, messages]); // Ensure dependencies are updated properly
+  
+  // Effect for handling receive-message
+  useEffect(() => {
+    if (!socket) return; // Ensure socket is initialized
+  
+    const handleReceiveMessage = (data) => {
+      console.log("business-Received message:", data);
       if (data.room !== undefined) {
         setMessages((prevMessages) => ({
           ...prevMessages,
           [data.room]: [...(prevMessages[data.room] || []), data],
         }));
       }
-    });
-
-    return () => {
-      socket.disconnect();
     };
-  }, []);
+  
+    // Add the event listener
+    socket.on("business-receive-message", handleReceiveMessage);
+  
+    // Cleanup function to remove the event listener when component unmounts or when the socket changes
+    return () => {
+      socket.off("business-receive-message", handleReceiveMessage);
+    };
+  }, [socket, messages]); // Ensure dependencies are updated properly
+  
 
   const handleInputChange = (event) => {
     setNewCardContent(event.target.value);
@@ -62,23 +109,17 @@ const App = () => {
 
   const handleAddCard = async () => {
     const formData = new FormData();
-   
-    
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/server1/business",{
-          businessName:newCardContent,
-          user:userData.username,
-          details:date
-        }
-        
-      );
+      const response = await axios.post("/api/server1/business", {
+        businessName: newCardContent,
+        user: userData.fullName,
+        details: date,
+      });
       alert("Todo added");
       setCards((prevCards) => [...prevCards, response.data]);
       setNewCardContent("");
       setdate("");
-      
     } catch (error) {
       console.error("Error adding card:", error);
     }
@@ -89,7 +130,7 @@ const App = () => {
     setChatRoomName(cards[index].name);
     setShowSidebar(true);
     if (socket) {
-      socket.emit("join-room", index);
+      socket.emit("business-join-room", index);
       if (!messages[index]) {
         setMessages((prevMessages) => ({
           ...prevMessages,
@@ -106,12 +147,31 @@ const App = () => {
   const handleSubmitMessage = (e) => {
     e.preventDefault();
     if (socket || selectedCardIndex !== null) {
-      socket.emit("message", {
+      socket.emit("business-message", {
         text: messageInput,
         room: selectedCardIndex,
-        sender: userData.username,
+        sender: userData.fullName,
       });
       setMessageInput("");
+    }
+  };
+  const handleRemoveCard = async (index) => {
+    try {
+      const card = cards[index]; // Get the card object from the cards array based on the index
+      console.log(cards[index])
+      // Check if the username of the card matches the current username
+      if (card.user === userData.fullName) {
+        // If the usernames match, proceed with deletion
+        await axios.delete(`/api/server1/business/${index}`);
+        setCards((prevCards) => prevCards.filter((_, i) => i !== index));
+        alert("Card is removed");
+      } else {
+        // If the usernames don't match, display an alert message
+        alert("Username mismatch. Deletion not allowed.");
+        // Optionally perform another action
+      }
+    } catch (error) {
+      console.error("Error removing card:", error);
     }
   };
 
@@ -125,7 +185,7 @@ const App = () => {
       ) {
         return (
           card.businessName.toLowerCase().includes(filterText.toLowerCase()) ||
-          card.user.toLowerCase().includes(filterText.toLowerCase())||
+          card.user.toLowerCase().includes(filterText.toLowerCase()) ||
           card.details.toLowerCase().includes(filterText.toLowerCase())
         );
       }
@@ -133,35 +193,46 @@ const App = () => {
     });
   }, [cards, filterText]);
 
-  
-
   return (
     <div>
       <div className="new-ui">
-        <div className="sidebar">
-          <div>
-            <LogoutButton />
+        <div className="topbar">
+          <div className="top-barservers">
+            <a href="/">TUEXCHANGE</a>
           </div>
-          <h2>Post Business Details</h2>
-          <div className="addlost2">
+
+          <div className="top-barservers">
+            <a href="/server1">LOST</a>
+            <a href="/server2">TRAVEL</a>
+            <a href="/server3">RESELL</a>
+            <a href="/server4">BUSINESS</a>
+          </div>
+        </div>
+        <div className="main-content">
+          <div className="sidebar">
             <div>
-              <input
-                type="text"
-                className="papa"
-                placeholder="Enter Business name"
-                value={newCardContent}
-                onChange={handleInputChange}
-              />
-              <input
-                type="text"
-                className="papa"
-                placeholder="Enter details"
-                value={date}
-                onChange={handleDateChange}
-              />
+              <LogoutButton />
             </div>
-            <div className="jai2">
-              {/* <form className="photo">
+            <h2>Post Business Details</h2>
+            <div className="addlost2">
+              <div>
+                <input
+                  type="text"
+                  className="papa"
+                  placeholder="Enter Business name"
+                  value={newCardContent}
+                  onChange={handleInputChange}
+                />
+                <input
+                  type="text"
+                  className="papa"
+                  placeholder="Enter details"
+                  value={date}
+                  onChange={handleDateChange}
+                />
+              </div>
+              <div className="jai2">
+                {/* <form className="photo">
                 <label htmlFor="file-upload" className="custom-file-input">
                   ADD PHOTO
                 </label>
@@ -173,80 +244,93 @@ const App = () => {
                   className="hidden-input"
                 />
               </form> */}
-              <button className="jai3" onClick={handleAddCard}>ADD DETAILS</button>
-            </div>
-          </div>
-
-          <div className="filteritem">
-            <h2>Search Business</h2>
-            <input
-              className="filmeba"
-              type="text"
-              placeholder="Filter cards"
-              value={filterText}
-              onChange={(e) => setFilterText(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="stack-of-cards">
-          <div className="post">
-            <h2>TravelMania</h2>
-          </div>
-          <div className="card-container">
-           
-            {filteredCards.map((card, index) => (
-              <div key={index} className="card">
-                
-                <p className="user-info">User: {card.user}</p>
-                <p className="lost-item">BusinessName: {card.businessName}</p>
-                <p className="user-info">Details: {card.details}</p>
-               
-                {console.log(card.user)}
-                <button
-                  className="chat-button"
-                  onClick={() => handleOpenChat(index)}
-                >
-                  Chat
+                <button className="jai3" onClick={handleAddCard}>
+                  ADD DETAILS
                 </button>
               </div>
-            ))}
+            </div>
+
+            <div className="filteritem">
+              <h2>Search Business</h2>
+              <input
+                className="filmeba"
+                type="text"
+                placeholder="Filter cards"
+                value={filterText}
+                onChange={(e) => setFilterText(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="stack-of-cards">
+            <div className="post"></div>
+            <div className="card-container">
+              {filteredCards.map((card, index) => (
+                <div key={index} className="card">
+                  <p className="user-info">USER: {card.user}</p>
+                  <p className="lost-item">BUSINESSNAME: {card.businessName}</p>
+                  <p className="user-info">DETAILS: {card.details}</p>
+
+                  
+                  <button
+                    className="chat-button"
+                    onClick={() => handleOpenChat(index)}
+                  >
+                    CHAT
+                  </button>
+                  <button
+                    className="remove-button"
+                    onClick={() => handleRemoveCard(index)}
+                  >
+                   REMOVE
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {showSidebar && (
-        <div className="sidebar-container">
-          <div className="sidebar-contenttt">
-            <button onClick={handleCloseChat}>Close</button>
-            <h2>Chat with {chatRoomName}</h2>
-            <div className="formmm">
-              <form onSubmit={handleSubmitMessage}>
-                <input
-                  value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  placeholder="Message"
-                />
-                <button type="submit">Send</button>
-              </form>
-            </div>
-            <div className="messages-column">
-              <h3>Messages</h3>
-              <div className="chat-messages">
-                {(messages[selectedCardIndex] || []).map((message, index) => (
-                  <div key={index}>
-                    <p>
-                      {message.sender}: {message.text}
-                    </p>
-                  </div>
-                ))}
+        {showSidebar && (
+            <div className="sidebar-container">
+              <div className="sidebar-contenttt">
+                <button onClick={handleCloseChat}>Close</button>
+                <h2>Chat with {chatRoomName}</h2>
+                <div className="formmm">
+                  <form  onSubmit={handleSubmitMessage}>
+                    <input
+                    className="ina"
+                      value={messageInput}
+                      onChange={(e) => setMessageInput(e.target.value)}
+                      placeholder="Message"
+                    />
+                    <button type="submit">Send</button>
+                  </form>
+                </div>
+                <div className="messages-column">
+                  <h3>Messages</h3>
+                  <div className="chat-messages">
+                  {/* Display loading indicator while messages are being fetched */}
+                  {loadingMessages ? (
+                    <p>Loading messages...</p>
+                  ) : (
+                    // Display messages if not loading
+                    (messages[selectedCardIndex] || []).map((message, index) => (
+                      <div key={index}>
+                        <p>
+                          {message.sender}: {message.text}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
 
 export default App;
+
