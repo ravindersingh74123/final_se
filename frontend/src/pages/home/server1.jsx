@@ -107,11 +107,16 @@ console.log(userData.fullName);
     setNewCardContent(event.target.value);
   };
 
-  const handleAddCard = async () => {
+ const handleAddCard = async (e) => {
+    e.preventDefault();
+     
+
     const formData = new FormData();
     formData.append("image", image);
     formData.append("title", newCardContent);
     formData.append("name", userData.fullName);
+    formData.append("username", userData.username);
+
 
     try {
       const response = await axios.post("/api/server1/lost", formData);
@@ -119,6 +124,8 @@ console.log(userData.fullName);
       setCards((prevCards) => [...prevCards, response.data]);
       setNewCardContent("");
       setImage(null);
+     
+
     } catch (error) {
       console.error("Error adding card:", error);
     }
@@ -172,20 +179,27 @@ console.log(userData.fullName);
       setMessageInput("");
     }
   };
-  const handleRemoveCard = async (index) => {
+const handleRemoveCard = async (index) => {
     try {
-      const card = cards[index]; // Get the card object from the cards array based on the index
+      const card = cards[index];
       console.log(cards[index])
-      // Check if the username of the card matches the current username
-      if (card.name === userData.fullName) {
-        // If the usernames match, proceed with deletion
+      if (card.username === userData.username) {
+        // If the card is removed by the user who posted it
         await axios.delete(`/api/server1/lost/${index}`);
+        
+        // Remove messages associated with the removed card from the database
+        await axios.delete(`/api/server1/lost_messages/${index}`);
+        
         setCards((prevCards) => prevCards.filter((_, i) => i !== index));
+        // Clear messages associated with the removed card from the state
+        setMessages((prevMessages) => {
+          const updatedMessages = { ...prevMessages };
+          delete updatedMessages[index];
+          return updatedMessages;
+        });
         alert("Card is removed");
       } else {
-        // If the usernames don't match, display an alert message
         alert("Username mismatch. Deletion not allowed.");
-        // Optionally perform another action
       }
     } catch (error) {
       console.error("Error removing card:", error);
