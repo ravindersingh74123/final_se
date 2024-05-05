@@ -300,11 +300,11 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/users", userRoutes);
 
 import multer, { diskStorage } from "multer";
-app.use(express.static("frontend/public"));
+app.use(express.static("public"));
 
 const storage = diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, "/frontend/public/images"));
+    cb(null, path.join(__dirname, "../frontend/public/images"));
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now();
@@ -326,6 +326,7 @@ app.post("/api/server1/resell", upload.single("image"), async function (req, res
     name: createPayload.name,
     price: createPayload.price,
     image: imageName,
+    username: createPayload.username,
   });
   res.json({
     msg: "Todo created",
@@ -339,6 +340,7 @@ app.post("/api/server1/lost", upload.single("image"), async function (req, res) 
   await Course.create({
     title: createPayload.title,
     name: createPayload.name,
+    username: createPayload.username,
     image: imageName,
   });
   res.json({
@@ -352,6 +354,7 @@ app.post("/api/server1/travel", async function (req, res) {
   await Travel.create({
     destination: createPayload.destination,
     user: createPayload.user,
+    username: createPayload.username,
     date: createPayload.date,
     iD:   createPayload.index,
   });
@@ -359,6 +362,85 @@ app.post("/api/server1/travel", async function (req, res) {
     msg: "Todo created",
   });
 });
+
+app.delete('/api/server1/travel_messages/:index', async (req, res) => {
+  const index = req.params.index;
+  try {
+    // Find messages associated with the given card index
+    const messagesToDelete = await tMessage.find({ room: index });
+    if (messagesToDelete.length > 0) {
+      // If messages are found, delete them
+      await tMessage.deleteMany({ room: index });
+      res.status(200).json({ success: true, message: 'Messages deleted successfully.' });
+    } else {
+      // If no messages are found for the given index, return a message
+      res.status(200).json({ success: false, message: 'No messages found for the given index.' });
+    }
+  } catch (error) {
+    console.error("Error deleting messages:", error);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+});
+
+app.delete('/api/server1/lost_messages/:index', async (req, res) => {
+  const index = req.params.index;
+  try {
+    // Find messages associated with the given card index
+    const messagesToDelete = await lMessage.find({ room: index });
+    if (messagesToDelete.length > 0) {
+      // If messages are found, delete them
+      await lMessage.deleteMany({ room: index });
+      res.status(200).json({ success: true, message: 'Messages deleted successfully.' });
+    } else {
+      // If no messages are found for the given index, return a message
+      res.status(200).json({ success: false, message: 'No messages found for the given index.' });
+    }
+  } catch (error) {
+    console.error("Error deleting messages:", error);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+});
+
+app.delete('/api/server1/resell_messages/:index', async (req, res) => {
+  const index = req.params.index;
+  try {
+    // Find messages associated with the given card index
+    const messagesToDelete = await rMessage.find({ room: index });
+    if (messagesToDelete.length > 0) {
+      // If messages are found, delete them
+      await rMessage.deleteMany({ room: index });
+      res.status(200).json({ success: true, message: 'Messages deleted successfully.' });
+    } else {
+      // If no messages are found for the given index, return a message
+      res.status(200).json({ success: false, message: 'No messages found for the given index.' });
+    }
+  } catch (error) {
+    console.error("Error deleting messages:", error);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+});
+
+app.delete('/api/server1/business_messages/:index', async (req, res) => {
+  const index = req.params.index;
+  try {
+    // Find messages associated with the given card index
+    const messagesToDelete = await bMessage.find({ room: index });
+    if (messagesToDelete.length > 0) {
+      // If messages are found, delete them
+      await bMessage.deleteMany({ room: index });
+      res.status(200).json({ success: true, message: 'Messages deleted successfully.' });
+    } else {
+      // If no messages are found for the given index, return a message
+      res.status(200).json({ success: false, message: 'No messages found for the given index.' });
+    }
+  } catch (error) {
+    console.error("Error deleting messages:", error);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+});
+
+
+
 app.delete("/api/server1/travel/:idd", async (req, res) => {
   const { idd } = req.params;
 
@@ -466,6 +548,7 @@ app.post("/api/server1/business", async function (req, res) {
   await Business.create({
     businessName: createPayload.businessName,
     user: createPayload.user,
+    username: createPayload.username,
     details: createPayload.details,
   });
   res.json({
@@ -776,5 +859,3 @@ server.listen(PORT, () => {
   connectToMongoDB();
   console.log(`Server Running on port ${PORT}`);
 });
-
-
