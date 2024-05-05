@@ -4,6 +4,7 @@ const CourseSchema = new mongoose.Schema({
     // Schema definition here
     businessName:String,
     user:String,
+    username:String,
     
     
     details:String
