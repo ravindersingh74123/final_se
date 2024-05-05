@@ -107,13 +107,14 @@ const App = () => {
     setdate(event.target.value);
   };
 
-  const handleAddCard = async () => {
+ const handleAddCard = async () => {
     const formData = new FormData();
 
     try {
       const response = await axios.post("/api/server1/business", {
         businessName: newCardContent,
         user: userData.fullName,
+        username: userData.username,
         details: date,
       });
       alert("Todo added");
@@ -155,20 +156,26 @@ const App = () => {
       setMessageInput("");
     }
   };
-  const handleRemoveCard = async (index) => {
+ const handleRemoveCard = async (index) => {
     try {
-      const card = cards[index]; // Get the card object from the cards array based on the index
-      console.log(cards[index])
-      // Check if the username of the card matches the current username
-      if (card.user === userData.fullName) {
-        // If the usernames match, proceed with deletion
+      const card = cards[index];
+      if (card.username === userData.username) {
+        // If the card is removed by the user who posted it
         await axios.delete(`/api/server1/business/${index}`);
+        
+        // Remove messages associated with the removed card from the database
+        await axios.delete(`/api/server1/business_messages/${index}`);
+        
         setCards((prevCards) => prevCards.filter((_, i) => i !== index));
+        // Clear messages associated with the removed card from the state
+        setMessages((prevMessages) => {
+          const updatedMessages = { ...prevMessages };
+          delete updatedMessages[index];
+          return updatedMessages;
+        });
         alert("Card is removed");
       } else {
-        // If the usernames don't match, display an alert message
         alert("Username mismatch. Deletion not allowed.");
-        // Optionally perform another action
       }
     } catch (error) {
       console.error("Error removing card:", error);
