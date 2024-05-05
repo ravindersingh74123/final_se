@@ -109,22 +109,36 @@ const App = () => {
     setprice(event.target.value);
   };
 
-  const handleAddCard = async () => {
+ const handleAddCard = async (e) => {
+    // Create a new FormData object to hold the form data
+    e.preventDefault();
     const formData = new FormData();
-    formData.append("image", image);
-    formData.append("title", newCardContent);
-    formData.append("name", userData.fullName);
-    formData.append("price", price);
-
+  
+    // Append the data fields to the FormData object using the .set method
+    formData.set("image", image); // Assuming image is the file object
+    formData.set("title", newCardContent);
+    formData.set("name", userData.fullName);
+    formData.set("price", price);
+    formData.set("username", userData.username);
+    console.log("01");
+  
     try {
+      // Send a POST request to the server with the FormData
+      console.log("02");
       const response = await axios.post("/api/server1/resell", formData);
+      console.log("03");
+  
+      // If the request is successful, update the UI state accordingly
       alert("Todo added");
+      console.log("04");
       setCards((prevCards) => [...prevCards, response.data]);
       setNewCardContent("");
       setImage(null);
-      setprice("");
+      setprice(""); // Assuming setPrice is a state update function for the price
     } catch (error) {
+      // Handle errors, such as network errors or server errors
       console.error("Error adding card:", error);
+      // Optionally, display an error message to the user
     }
   };
 
@@ -160,18 +174,24 @@ const App = () => {
   };
   const handleRemoveCard = async (index) => {
     try {
-      const card = cards[index]; // Get the card object from the cards array based on the index
-      console.log(cards[index])
-      // Check if the username of the card matches the current username
-      if (card.name === userData.fullName) {
-        // If the usernames match, proceed with deletion
+      const card = cards[index];
+      if (card.username === userData.username) {
+        // If the card is removed by the user who posted it
         await axios.delete(`/api/server1/resell/${index}`);
+        
+        // Remove messages associated with the removed card from the database
+        await axios.delete(`/api/server1/resell_messages/${index}`);
+        
         setCards((prevCards) => prevCards.filter((_, i) => i !== index));
+        // Clear messages associated with the removed card from the state
+        setMessages((prevMessages) => {
+          const updatedMessages = { ...prevMessages };
+          delete updatedMessages[index];
+          return updatedMessages;
+        });
         alert("Card is removed");
       } else {
-        // If the usernames don't match, display an alert message
         alert("Username mismatch. Deletion not allowed.");
-        // Optionally perform another action
       }
     } catch (error) {
       console.error("Error removing card:", error);
